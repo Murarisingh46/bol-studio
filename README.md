@@ -79,8 +79,8 @@ The built-in Node test suite covers mixed Unicode CRUD, repeated saves, stale ed
 
 A cloud instance can serve the browser engine without an inference key or GPU. The local and hosted APIs use the same SQL and revision checks. To reproduce it on a Cloudflare account, bind a D1 database as `DB`, bind `public/` as static `ASSETS`, and use `server/cloud.mjs` as the Worker entry point. Apply `server/schema.sql` before deploying. A [Wrangler configuration example](wrangler.example.jsonc) includes the required bindings. The self-hosted Python engine requires a CPU host with persistent model storage.
 
-## Credits and AI assistance
+## Credits
 
 The speech engines use [faster-whisper](https://github.com/SYSTRAN/faster-whisper), [Whisper](https://github.com/openai/whisper), and [Transformers.js](https://github.com/huggingface/transformers.js). The bundled recording is synthesized from an original sentence with the [Hindi Rohan](https://huggingface.co/rhasspy/piper-voices/tree/main/hi/hi_IN/rohan/medium) and [English Lessac](https://huggingface.co/rhasspy/piper-voices/tree/main/en/en_US/lessac/medium) Piper voices. The voice models are fetched separately for fixture generation and are excluded from the repository.
 
-OpenAI Codex helped design and implement the app, build the test fixture, run checks, and draft the documentation. The speech models are pretrained. The verification notes record machine-run checks. A personal microphone rehearsal remains part of interview preparation.
+Development was AI-assisted, including design, implementation, testing, and documentation.

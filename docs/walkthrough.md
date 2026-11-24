@@ -41,6 +41,6 @@ python speech/check_sample.py
 
 The bundled demonstration combines two synthesized voice segments with a natural pause. The continuous fixture shortens that transition. These are controlled samples, and **Transcribe sample with Whisper** executes the recognizer each time. **Play example** is explicitly labelled playback of a saved transcript and uses no model download. Talk through both the successful output and the missed Hindi lead-in when explaining model choice.
 
-## What Codex contributed
+## Interview demo
 
-Codex designed the UI and architecture, implemented the code, compared speech models, ran the checks, and drafted this guide. Before presenting, run the two demo paths, trace a request from the capture worklet to the database, and describe which parts you have personally reviewed or modified. Use your own experience when answering the employer’s screening questions.
+Start with **Play example** so the interviewer can hear the audio and see the verified captions. Then use **Transcribe sample with Whisper** to show live inference on the same recording. Finish by saving the transcript, editing a word, and finding the updated session in the library.
