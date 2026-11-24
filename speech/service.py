@@ -23,6 +23,11 @@ class SpeechHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def do_GET(self):
+        if self.path == '/health':
+            return self.reply(200, {'ready': True, 'model': MODEL})
+        return self.reply(404, {'error': 'Unknown route.'})
+
     def do_POST(self):
         if self.path != "/transcribe":
             return self.reply(404, {"error": "Unknown route."})
