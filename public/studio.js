@@ -74,13 +74,10 @@ function status(name, msg, percent) {
 }
 function controls() {
   const settingUp = ["Preparing", "Permission"].includes(phase);
-  const label = recording
-    ? settingUp
-      ? "Cancel"
-      : "Stop"
-    : retry
-      ? "Retry phrase"
-      : "Start recording";
+  let label = retry ? "Retry phrase" : "Start recording";
+  if (recording) label = settingUp ? "Cancel" : "Stop";
+  if (phase === "Finishing") label = "Finishing…";
+  if (phase === "Retrying") label = "Retrying…";
   $("record").innerHTML = icon(recording ? "stop" : "mic");
   $("record").append(el("span", "", label));
   $("record").disabled = loading || ["Finishing", "Retrying"].includes(phase);
