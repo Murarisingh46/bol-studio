@@ -4,7 +4,7 @@ A live Hindi–English transcription desk. Speak a sentence, watch phrases arriv
 
 ![Bol Studio recording desk and session library](docs/studio.png)
 
-The [hosted demo](https://bol-studio-hinglish.murari-s536553.chatgpt.site) currently requires owner access. Run the app locally to try it from another account.
+**[Open the public demo](https://bol-studio-hinglish.murari-s536553.chatgpt.site)** and choose **Try sample**. The first run downloads about 250 MB of model weights. Saved sessions belong to the current browser workspace.
 
 ## Start in one command
 

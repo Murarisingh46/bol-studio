@@ -30,7 +30,7 @@ Save the result as **Project review**, fix one word, reload, search for the corr
 | Browser microphone pipeline | Chrome’s simulated microphone produced mixed-script text before Stop. One run spelled अगर as आगर. This exercised Web Audio capture and real inference. Human microphone acoustics were outside this check. |
 | History | Browser tests created, opened, edited, searched, reloaded, and deleted a session. Cancelling deletion preserved it. |
 | Error and concurrency handling | Five automated tests cover Unicode storage, owner isolation, idempotence, stale writes, invalid input, silence and segmentation. |
-| Hosting | The cloud deployment reported success. Its D1 binding contained the transcripts table. The packaged Worker passed CRUD against local D1. Anonymous cloud access returned HTTP 401 under owner-only sharing. |
+| Hosting | The cloud deployment reported success. Its D1 binding contained the transcripts table. The packaged Worker passed CRUD against local D1. The public homepage returned HTTP 200. A fresh, signed-out Chrome profile downloaded the weights, transcribed the sample, and completed CRUD after reloading. A new anonymous workspace successfully created, read, edited, listed and deleted a temporary session in production D1. |
 
 To reproduce the continuous-utterance check with the self-hosted service running:
 
