@@ -61,9 +61,18 @@
             <button id="record" class="record" disabled>
               <span data-icon="mic"></span><span>Start recording</span></button
             ><button id="sample" class="sample" disabled>
-              <span data-icon="play"></span>Try sample
+              <span data-icon="play"></span>Play example
             </button>
           </div>
+          <button id="transcribe-sample" class="model-sample" disabled>
+            Transcribe sample with Whisper
+          </button>
+          <progress
+            id="model-progress"
+            max="100"
+            aria-label="Speech model loading progress"
+            hidden
+          ></progress>
           <p class="hint" id="hint" role="status">
             Connecting to your workspace…
           </p>

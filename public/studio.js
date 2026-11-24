@@ -1,3 +1,4 @@
+import { browserSpeech, LiveRecording, ExamplePlayback } from "./live.js";
 import { Recording } from "./recording.js";
 
 const $ = (id) => document.getElementById(id);
@@ -31,12 +32,14 @@ let sessions = [],
   workspace = false,
   historyError = "",
   current = null,
+  phase = "Standby",
   recording = false,
   retry = false,
   editor = null,
   action = null,
   loading = false,
   searchSeq = 0;
+let interim = "";
 let draft = null,
   seconds = 0,
   timer;
@@ -52,35 +55,90 @@ async function request(path, options) {
   if (!r.ok) throw new Error(value.error || "Request failed. Try again.");
   return value;
 }
-function status(name, msg) {
+function status(name, msg, percent) {
+  const changed = phase !== name;
+  phase = name;
+  const meter = $("model-progress");
+  meter.hidden = name !== "Preparing" || draft?.engine !== "Browser Whisper";
+  if (Number.isFinite(percent)) meter.value = percent;
+  else meter.removeAttribute("value");
   $("status").lastChild.textContent = name;
   $("status").classList.toggle(
     "on",
-    ["Recording", "Playing sample", "Retrying"].includes(name),
+    ["Recording", "Playing sample", "Playing example", "Retrying"].includes(
+      name,
+    ),
   );
   $("hint").textContent = msg;
-  $("record").disabled = ["Finishing", "Retrying"].includes(name);
+  if (changed) showDraft();
 }
 function controls() {
-  const label = recording ? "Stop" : retry ? "Retry phrase" : "Start recording";
+  const settingUp = ["Preparing", "Permission"].includes(phase);
+  const label = recording
+    ? settingUp
+      ? "Cancel"
+      : "Stop"
+    : retry
+      ? "Retry phrase"
+      : "Start recording";
   $("record").innerHTML = icon(recording ? "stop" : "mic");
   $("record").append(el("span", "", label));
-  $("record").disabled = loading;
+  $("record").disabled = loading || ["Finishing", "Retrying"].includes(phase);
   $("sample").disabled = recording || loading;
+  $("transcribe-sample").hidden = $("engine").value === "Browser Live";
+  $("transcribe-sample").disabled = recording || loading;
   $("engine").disabled = recording || loading;
   $("save").disabled = recording || !draft?.body.trim() || !workspace;
 }
 function showDraft() {
   const text = draft?.body || "";
-  if (text) {
+  if (text || interim) {
     let node = $("draft").querySelector(".drafttext");
     if (!node) {
       $("draft").replaceChildren((node = el("p", "drafttext")));
       node.setAttribute("aria-live", "polite");
     }
     node.textContent = text;
+    if (interim) node.append(el("em", "interim", (text ? " " : "") + interim));
     $("draft").scrollTop = $("draft").scrollHeight;
-  } else $("draft").replaceChildren(empty);
+  } else {
+    const [title, detail] = {
+      Preparing: [
+        "Getting ready",
+        draft?.source === "sample"
+          ? "The sample will play automatically once the speech engine is ready."
+          : "Your microphone is off. Wait for Recording before speaking.",
+      ],
+      Permission: [
+        "Allow your microphone",
+        "Choose Allow in the browser prompt. Speak when Recording appears.",
+      ],
+      Recording: [
+        "Listening…",
+        draft?.engine === "Browser Live"
+          ? "Speak now. Interim words appear as your browser recognizes them."
+          : "Speak now. Pause briefly after a phrase to see it here.",
+      ],
+      "Playing example": [
+        "Playing the example",
+        "These captions come from a previous Whisper run.",
+      ],
+      "Playing sample": [
+        "Playing the sample",
+        "The transcript will appear as Whisper finishes each phrase.",
+      ],
+      Finishing: [
+        "Finishing up",
+        "Whisper is processing the last audio from this session.",
+      ],
+    }[phase] || [
+      "Your words go here.",
+      "Start a recording or try the audio sample to see each phrase appear.",
+    ];
+    empty.querySelector("h2").textContent = title;
+    empty.querySelector("p").textContent = detail;
+    $("draft").replaceChildren(empty);
+  }
   const words = text.trim() ? text.trim().split(/\s+/u).length : 0;
   $("count").textContent = words + " " + (words === 1 ? "word" : "words");
   $("draftstate").textContent = draft?.saved
@@ -88,7 +146,15 @@ function showDraft() {
     : text
       ? "Unsaved draft"
       : recording
-        ? "Capturing audio"
+        ? {
+            Preparing: "Preparing audio",
+            Permission: "Awaiting permission",
+            Recording: "Capturing audio",
+            "Playing sample": "Sample audio",
+            "Playing example": "Saved example",
+            Finishing: "Finishing",
+            Retrying: "Retrying phrase",
+          }[phase] || "Preparing audio"
         : "No active draft";
   controls();
 }
@@ -160,13 +226,14 @@ function begin(source) {
   } else void start(source);
 }
 async function start(source) {
-  const engine = $("engine").value;
+  const engine = source === "example" ? "Whisper replay" : $("engine").value;
+  interim = "";
   draft = {
     id: crypto.randomUUID(),
-    source,
+    source: source === "example" ? "sample" : source,
     engine,
     body: "",
-    title: source === "sample" ? "Team check-in" : "",
+    title: source !== "microphone" ? "Team check-in" : "",
     saved: false,
   };
   seconds = 0;
@@ -175,8 +242,18 @@ async function start(source) {
   bars.fill(0);
   $("clock").textContent = "00:00";
   showDraft();
-  current = new Recording(engine, source, {
+  const events = {
     status,
+    tick(s) {
+      seconds = s;
+      $("clock").textContent = time(s);
+      $("db").textContent =
+        source === "example" ? "Sample playback" : "Browser input";
+    },
+    partial(text) {
+      interim = text;
+      showDraft();
+    },
     level(level, s) {
       seconds = s;
       $("db").textContent =
@@ -196,17 +273,35 @@ async function start(source) {
       recording = false;
       retry = canRetry;
       $("db").textContent = "Input idle";
+      if (
+        err &&
+        engine === "Browser Live" &&
+        !/permission|microphone/i.test(err)
+      ) {
+        $("engine").value = "Browser Whisper";
+        err += " Browser Whisper is now selected for your next recording.";
+      }
       status(
         err ? "Needs attention" : "Standby",
         err ||
-          (draft.body
-            ? "Review the transcript, then save your session."
-            : "No speech captured. Try speaking closer to the microphone."),
+          (source === "example"
+            ? "Example playback ended. Start recording to transcribe your own voice."
+            : draft.body
+              ? "Review the transcript, then save your session."
+              : current.preparing
+                ? "Setup cancelled. You can start again when ready."
+                : "No speech captured. Try speaking closer to the microphone."),
       );
       showDraft();
       wave();
     },
-  });
+  };
+  current =
+    source === "example"
+      ? new ExamplePlayback(events)
+      : engine === "Browser Live"
+        ? new LiveRecording(events)
+        : new Recording(engine, source, events);
   await current.start();
 }
 $("record").onclick = () => {
@@ -222,11 +317,15 @@ $("record").onclick = () => {
   }
   begin("microphone");
 };
-$("sample").onclick = () => begin("sample");
+$("sample").onclick = () => begin("example");
+$("transcribe-sample").onclick = () => begin("sample");
 $("engine").onchange = () => {
+  controls();
   if (!retry) status("Standby", engineHint());
 };
 function engineHint() {
+  if ($("engine").value === "Browser Live")
+    return "Live captions use your browser’s speech service, which may send audio to its provider.";
   return $("engine").value === "Browser Whisper"
     ? "Audio stays in this browser. First use downloads about 250 MB."
     : "Audio is processed by the self-hosted Whisper service.";
@@ -408,11 +507,26 @@ async function connect() {
   try {
     const cfg = await request("workspace");
     workspace = true;
-    if (cfg.selfHosted && $("engine").options.length === 1) {
+    const engines = $("engine");
+    if (browserSpeech && !engines.querySelector('option[value="Browser Live"]'))
+      engines.add(
+        new Option(
+          "Browser Live · fast",
+          "Browser Live",
+          !cfg.selfHosted,
+          !cfg.selfHosted,
+        ),
+        0,
+      );
+    if (
+      cfg.selfHosted &&
+      !engines.querySelector('option[value="Self-hosted Whisper"]')
+    ) {
       $("engine").add(
         new Option("Self-hosted Whisper", "Self-hosted Whisper", true, true),
       );
     }
+    controls();
     if (!recording) status("Standby", engineHint());
     await refresh();
   } catch (err) {

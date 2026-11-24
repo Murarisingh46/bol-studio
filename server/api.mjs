@@ -112,7 +112,12 @@ export async function api(request, db, speech = null) {
   }
   if (
     !uuid.test(data.id) ||
-    !["Browser Whisper", "Self-hosted Whisper"].includes(data.engine) ||
+    ![
+      "Browser Whisper",
+      "Self-hosted Whisper",
+      "Browser Live",
+      "Whisper replay",
+    ].includes(data.engine) ||
     !["microphone", "sample"].includes(data.source) ||
     !Number.isSafeInteger(data.seconds) ||
     data.seconds < 0 ||

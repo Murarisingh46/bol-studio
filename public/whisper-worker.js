@@ -19,6 +19,14 @@ self.onmessage = async ({ data }) => {
       );
       env.allowLocalModels = false;
       env.backends.onnx.wasm.numThreads = 1;
+      // Sizes of the two quantized weight files at the pinned model revision.
+      const sizes = {
+        "onnx/encoder_model_quantized.onnx": 92324809,
+        "onnx/decoder_model_merged_quantized.onnx": 156780950,
+      };
+      const total = Object.values(sizes).reduce((a, b) => a + b, 0);
+      const loaded = new Map();
+      let lastPercent = -1;
       pipe = await pipeline(
         "automatic-speech-recognition",
         "Xenova/whisper-small",
@@ -26,10 +34,24 @@ self.onmessage = async ({ data }) => {
           revision: "2d67713f236afa48a18992566e7647f6ca848e13",
           quantized: true,
           progress_callback: (p) => {
-            if (p.status === "progress" && p.file.endsWith(".onnx"))
-              self.postMessage({
-                progress: `Downloading ${p.file.includes("encoder") ? "encoder" : "decoder"} · ${Math.round(p.progress)}%`,
-              });
+            const size = sizes[p.file];
+            if (!size || !["done", "progress"].includes(p.status)) return;
+            const bytes =
+              p.status === "done" ? size : Math.min(size, p.loaded || 0);
+            loaded.set(p.file, Math.max(loaded.get(p.file) || 0, bytes));
+            const received = [...loaded.values()].reduce((a, b) => a + b, 0);
+            const percent = Math.floor((received * 100) / total);
+            if (percent === lastPercent) return;
+            lastPercent = percent;
+            self.postMessage({
+              progress: {
+                percent,
+                message:
+                  percent === 100
+                    ? "Model files ready. Starting Whisper…"
+                    : `Model files · ${Math.floor(received / 1e6)} / ${Math.ceil(total / 1e6)} MB (${percent}%)`,
+              },
+            });
           },
         },
       );

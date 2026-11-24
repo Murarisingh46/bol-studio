@@ -20,15 +20,18 @@ export class Recording {
   }
   async start() {
     try {
-      this.ctx = new AudioContext({ sampleRate: RATE });
-      await this.ctx.resume();
       this.events.status(
         "Preparing",
         this.engine === "Browser Whisper"
           ? "Loading Whisper Small. First use downloads about 250 MB."
           : "Preparing audio input…",
       );
-      await prepare(this.engine, (msg) => this.events.status("Preparing", msg));
+      this.ctx = new AudioContext({ sampleRate: RATE });
+      await this.ctx.resume();
+      if (this.closed) return;
+      await prepare(this.engine, ({ message, percent }) =>
+        this.events.status("Preparing", message, percent),
+      );
       if (this.closed) return;
       if (this.source === "sample") {
         const res = await fetch("/sample.wav");
@@ -123,7 +126,9 @@ export class Recording {
   async retry() {
     this.events.status("Retrying", "Recovering the remaining audio…");
     try {
-      await prepare(this.engine, (msg) => this.events.status("Retrying", msg));
+      await prepare(this.engine, ({ message }) =>
+        this.events.status("Retrying", message),
+      );
       this.failedChunk = false;
       this.failure = "";
       await this.drain();

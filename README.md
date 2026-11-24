@@ -1,10 +1,10 @@
 # Bol Studio
 
-A live Hindi–English transcription desk. Speak a sentence, watch phrases arrive, correct the text, and keep the session in a searchable SQL-backed library. **Try sample** plays a synthetic bilingual recording through the same capture and inference pipeline as the microphone.
+A live Hindi–English transcription desk. Speak a sentence, watch phrases arrive, correct the text, and keep the session in a searchable SQL-backed library. **Play example** replays a synthetic bilingual recording with previously verified Whisper captions. **Transcribe sample with Whisper** runs fresh inference on the same audio.
 
 ![Bol Studio recording desk and session library](docs/studio.png)
 
-**[Open the public demo](https://bol-studio-hinglish.murari-s536553.chatgpt.site)** and choose **Try sample**. The first run downloads about 250 MB of model weights. Saved sessions belong to the current browser workspace.
+**[Open the public demo](https://bol-studio-hinglish.murari-s536553.chatgpt.site)** and choose **Play example** for immediate playback. **Browser Live · fast** shows provisional words through the browser’s speech service where supported. That service may send microphone audio to its provider. Saved sessions belong to the current browser workspace.
 
 ## Start in one command
 
@@ -14,7 +14,7 @@ With **Node 22.16 or newer**, run this in the repository directory.
 npm start
 ```
 
-Open **http://127.0.0.1:8765** in a current desktop Chrome browser. This runs the web server and SQLite with Node built-ins. The browser engine fetches its pinned open-source model and runtime on first use. Allow the download to finish. Subsequent sessions can reuse the browser cache. Click **Try sample** for a microphone-free demo, or **Start recording** and grant microphone access. Use localhost or HTTPS for audio capture.
+Open **http://127.0.0.1:8765** in a current desktop Chrome browser. This runs the web server and SQLite with Node built-ins. Browser Whisper fetches its pinned open-source model and runtime on first use. Allow the download to finish. Subsequent sessions can reuse the browser cache. Click **Play example** for a microphone-free demo, or **Start recording** and grant microphone access. Use localhost or HTTPS for audio capture.
 
 ## Run the self-hosted recognizer
 
@@ -39,7 +39,7 @@ If the browser-only server is already running on port 8765, stop that process fi
 
 ## Demo in 90 seconds
 
-1. Click **Try sample**. Listen for “अगर समय मिले तो please review the project plan.” Compare the words on screen with what you hear.
+1. Select **Browser Whisper** or **Self-hosted Whisper** and click **Transcribe sample with Whisper**. Listen for “अगर समय मिले तो please review the project plan.” Compare the words on screen with what you hear.
 2. Click **Save session**. Give it a title and correct any recognition errors. Reload the page and find the title in **Session library**.
 3. Open the row, edit the transcript, and search for a word from the edit. Try **Delete session**, cancel once, then confirm.
 4. Click **Start recording** and say “आज हमारी team meeting है. Please share the update.” Pause briefly between thoughts. A phrase can appear while the microphone is still open. Stop to flush the last phrase.
@@ -58,6 +58,7 @@ microphone or sample WAV
 | Code | What to follow |
 | --- | --- |
 | `public/capture.js`, `public/phrases.js` | 32 ms audio frames, energy gate, pause detection and final flush |
+| `public/live.js` | Browser speech events, interim/final text handling and labelled example playback |
 | `public/recording.js` | Microphone permissions, sample playback, queue ordering, stop, retry and cleanup |
 | `public/whisper-worker.js`, `speech/service.py` | The two actual open-source inference engines |
 | `server/api.mjs` | Shared parameterized SQL, validation, ownership checks, idempotent create and revision checks |
