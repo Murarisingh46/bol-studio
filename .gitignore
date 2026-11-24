@@ -1,0 +1,9 @@
+.data/
+.env*
+.venv/
+__pycache__/
+*.pyc
+*.sqlite*
+node_modules/
+.DS_Store
+*.pdf

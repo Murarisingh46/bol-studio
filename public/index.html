@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#152b29" />
+    <title>Bol Studio · Live transcription</title>
+    <link rel="icon" href="/mark.svg" />
+    <link rel="stylesheet" href="/studio.css" />
+    <script type="module" src="/studio.js"></script>
+  </head>
+  <body>
+    <header class="mast">
+      <div class="wrap nav">
+        <a class="brand" href="#studio"
+          ><img src="/mark.svg" alt="" width="36" height="36" />Bol<span
+            >Studio</span
+          ></a
+        >
+        <nav aria-label="Workspace">
+          <a href="#studio" class="active">Studio</a
+          ><a href="#library">Library</a>
+        </nav>
+        <span class="lang" aria-label="Hindi and English"
+          ><b lang="hi">अ</b><i></i>Aa</span
+        >
+      </div>
+    </header>
+    <main class="wrap" id="studio">
+      <section class="intro">
+        <div>
+          <p class="kicker"><span class="rule"></span> LIVE TRANSCRIPTION</p>
+          <h1>Transcription studio<span>.</span></h1>
+          <p class="sub">
+            Speak in Hindi, English, or both in the same sentence.
+          </p>
+        </div>
+        <div class="engine">
+          <label for="engine">Recognition engine</label
+          ><select id="engine">
+            <option>Browser Whisper</option>
+          </select>
+        </div>
+      </section>
+      <section class="desk" aria-label="Live workspace">
+        <article class="recorder">
+          <div class="paneltop">
+            <span class="kicker">AUDIO INPUT</span
+            ><span id="status"><i></i>Standby</span>
+          </div>
+          <div class="clock" id="clock" aria-label="Recording duration">
+            00<span>:</span>00
+          </div>
+          <div class="signal">
+            <canvas id="scope" aria-label="Audio input display"></canvas>
+            <div class="ticks" aria-hidden="true">
+              <span>Signal history</span><span id="db">Input idle</span>
+            </div>
+          </div>
+          <div class="controls">
+            <button id="record" class="record" disabled>
+              <span data-icon="mic"></span><span>Start recording</span></button
+            ><button id="sample" class="sample" disabled>
+              <span data-icon="play"></span>Try sample
+            </button>
+          </div>
+          <p class="hint" id="hint" role="status">
+            Connecting to your workspace…
+          </p>
+        </article>
+        <article class="paper">
+          <div class="paneltop">
+            <span class="kicker">TRANSCRIPT</span
+            ><span id="count">0 words</span>
+          </div>
+          <div class="draft" id="draft">
+            <div class="emptydraft">
+              <span class="quotes" aria-hidden="true">“</span>
+              <h2>Your words go here.</h2>
+              <p>
+                Start a recording or try the audio sample to see each phrase
+                appear.
+              </p>
+            </div>
+          </div>
+          <div class="paperfoot">
+            <span id="draftstate">No active draft</span
+            ><button id="save" disabled>
+              <span data-icon="save"></span>Save session
+            </button>
+          </div>
+        </article>
+      </section>
+      <section id="library" class="library">
+        <div class="libhead">
+          <div>
+            <p class="kicker"><span class="rule"></span> YOUR WORKSPACE</p>
+            <h2>Session library</h2>
+          </div>
+          <label class="search"
+            ><span data-icon="search"></span
+            ><input
+              id="search"
+              type="search"
+              placeholder="Search sessions"
+              aria-label="Search sessions"
+          /></label>
+        </div>
+        <div id="records" aria-live="polite"></div>
+      </section>
+    </main>
+    <footer class="wrap">
+      <span>Bol Studio</span><span>Hindi <i>∕</i> English</span>
+    </footer>
+    <dialog id="editor">
+      <form id="form">
+        <div class="dialogtop">
+          <p class="kicker" id="dialogkind">SESSION</p>
+          <button
+            type="button"
+            class="icon"
+            id="close"
+            aria-label="Close dialog"
+          >
+            <span data-icon="close"></span>
+          </button>
+        </div>
+        <h2 id="dialogtitle">Save session</h2>
+        <label for="title">Session title</label
+        ><input id="title" required maxlength="100" /><label for="body"
+          >Transcript</label
+        ><textarea id="body" rows="6" maxlength="24000" required></textarea>
+        <p id="details"></p>
+        <p id="formerror" role="alert"></p>
+        <div class="dialogactions">
+          <button type="button" id="remove" class="danger">
+            Delete session</button
+          ><button id="submit" class="solid">Save session</button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="confirm">
+      <h2 id="confirmtitle"></h2>
+      <p id="confirmtext"></p>
+      <div class="dialogactions">
+        <button id="cancel">Cancel</button
+        ><button id="accept" class="solid">Confirm</button>
+      </div>
+    </dialog>
+    <div id="notice" role="status"></div>
+  </body>
+</html>
